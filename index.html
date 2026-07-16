@@ -14,20 +14,65 @@
     color: #ccc;
   }
 
-  /* ── GALERÍA ── */
+  /* ── CABECERA ── */
+  header {
+    text-align: center;
+    padding: 52px 20px 0;
+  }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: normal;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #ddd;
+  }
+
+  header p {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #666;
+    margin-top: 8px;
+  }
+
+  /* ── MENÚ ── */
+  nav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 36px 20px 40px;
+  }
+
+  nav button {
+    background: none;
+    border: 1px solid #444;
+    color: #888;
+    font-family: 'Georgia', serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 8px 20px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  nav button:hover {
+    border-color: #888;
+    color: #ccc;
+  }
+
+  nav button.activo {
+    border-color: #aaa;
+    color: #ddd;
+  }
+
+  /* ── GRID ── */
   #galeria {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 60px 40px 80px;
-  }
-
-  .titulo {
-    text-align: center;
-    font-size: 13px;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: #888;
-    margin-bottom: 48px;
+    padding: 0 30px 80px;
   }
 
   .grid {
@@ -47,7 +92,7 @@
     width: 100%; height: 100%;
     object-fit: cover;
     display: block;
-    opacity: 0.85;
+    opacity: 0.82;
     transition: opacity 0.3s ease, transform 0.4s ease;
   }
 
@@ -116,7 +161,7 @@
     background: none;
     border: none;
     cursor: pointer;
-    color: rgba(255,255,255,0.4);
+    color: rgba(255,255,255,0.35);
     font-size: 28px;
     line-height: 1;
     z-index: 110;
@@ -142,21 +187,27 @@
   #lightbox.activo:hover #lb-contador { opacity: 1; }
 
   @media (max-width: 600px) {
-    #galeria { padding: 40px 16px 60px; }
+    #galeria { padding: 0 12px 60px; }
     .grid { grid-template-columns: repeat(2, 1fr); gap: 4px; }
     #lb-foto { max-width: calc(100vw - 40px); max-height: calc(100vh - 60px); }
+    nav { gap: 4px; padding: 28px 12px 32px; }
+    nav button { font-size: 10px; padding: 7px 14px; }
   }
 </style>
 </head>
 <body>
 
-<!-- GALERÍA -->
+<header>
+  <h1>Martín Padrón</h1>
+  <p>unidad dād · La Gomera</p>
+</header>
+
+<nav id="menu"></nav>
+
 <div id="galeria">
-  <p class="titulo">Martín Padrón</p>
   <div class="grid" id="grid"></div>
 </div>
 
-<!-- LIGHTBOX -->
 <div id="lightbox">
   <button id="lb-cerrar" onclick="cerrar()">&#xd7;</button>
   <img id="lb-foto" src="" alt="">
@@ -170,40 +221,92 @@
 </div>
 
 <script>
-  const fotos = [
-    "images/_ER67311-Editar.jpg",
-    "images/_ER67322-Editar-2.jpg",
-    "images/_ER67426.jpg",
-    "images/_ER67440.jpg",
-    "images/_ER67441.jpg",
-    "images/_ER67446.jpg",
-    "images/_ER67447.jpg",
-    "images/_ER67448.jpg",
-    "images/_ER67453-Editar.jpg",
-    "images/_ER67458-Editar.jpg",
-    "images/_ER67462.jpg",
-    "images/_ER67464.jpg",
-    "images/_ER67465-Editar.jpg"
+  const categorias = [
+    {
+      nombre: "Contracción",
+      fotos: [
+        "images/MP_contrac_00001.jpg",
+        "images/MP_contrac_00002.jpg",
+        "images/MP_contrac_00003.jpg",
+        "images/MP_contrac_00004.jpg",
+        "images/MP_contrac_00005.jpg",
+        "images/MP_contrac_00006.jpg",
+        "images/MP_contrac_00007.jpg"
+      ]
+    },
+    {
+      nombre: "Equilibrio",
+      fotos: [
+        "images/MP_equilibrio_00001.jpg",
+        "images/MP_equilibrio_00002.jpg",
+        "images/MP_equilibrio_00003.jpg",
+        "images/MP_equilibrio_00004.jpg"
+      ]
+    },
+    {
+      nombre: "Jump",
+      fotos: [
+        "images/MP_jump_00001.jpg"
+      ]
+    },
+    {
+      nombre: "Pose",
+      fotos: [
+        "images/MP_pose_00001.jpg"
+      ]
+    },
+    {
+      nombre: "Suelo",
+      fotos: [
+        "images/MP_suelo_00001.jpg",
+        "images/MP_suelo_00002.jpg",
+        "images/MP_suelo_00003.jpg"
+      ]
+    }
   ];
 
+  let categoriaActual = 0;
+  let fotosActuales = [];
   let actual = 0;
+
   const lb = document.getElementById("lightbox");
   const lbFoto = document.getElementById("lb-foto");
   const lbContador = document.getElementById("lb-contador");
-
-  // Construir grid
   const grid = document.getElementById("grid");
-  fotos.forEach((f, i) => {
-    const div = document.createElement("div");
-    div.className = "thumb";
-    div.onclick = () => abrir(i);
-    const img = document.createElement("img");
-    img.src = f;
-    img.alt = "";
-    img.loading = "lazy";
-    div.appendChild(img);
-    grid.appendChild(div);
+  const menu = document.getElementById("menu");
+
+  // Construir menú
+  categorias.forEach((cat, i) => {
+    const btn = document.createElement("button");
+    btn.textContent = cat.nombre;
+    btn.onclick = () => seleccionarCategoria(i);
+    btn.id = "btn-" + i;
+    menu.appendChild(btn);
   });
+
+  function seleccionarCategoria(i) {
+    categoriaActual = i;
+    fotosActuales = categorias[i].fotos;
+
+    // Actualizar botones
+    document.querySelectorAll("nav button").forEach((b, j) => {
+      b.classList.toggle("activo", j === i);
+    });
+
+    // Reconstruir grid
+    grid.innerHTML = "";
+    fotosActuales.forEach((f, idx) => {
+      const div = document.createElement("div");
+      div.className = "thumb";
+      div.onclick = () => abrir(idx);
+      const img = document.createElement("img");
+      img.src = f;
+      img.alt = "";
+      img.loading = "lazy";
+      div.appendChild(img);
+      grid.appendChild(div);
+    });
+  }
 
   function abrir(i) {
     actual = i;
@@ -221,14 +324,14 @@
   function mostrar() {
     lbFoto.classList.remove("visible");
     setTimeout(() => {
-      lbFoto.src = fotos[actual];
+      lbFoto.src = fotosActuales[actual];
       lbFoto.onload = () => lbFoto.classList.add("visible");
     }, 250);
-    lbContador.textContent = (actual + 1) + " / " + fotos.length;
+    lbContador.textContent = (actual + 1) + " / " + fotosActuales.length;
   }
 
   function mover(dir) {
-    actual = (actual + dir + fotos.length) % fotos.length;
+    actual = (actual + dir + fotosActuales.length) % fotosActuales.length;
     mostrar();
   }
 
@@ -252,6 +355,9 @@
   lb.addEventListener("click", e => {
     if (e.target === lb) cerrar();
   });
+
+  // Cargar primera categoría
+  seleccionarCategoria(0);
 </script>
 </body>
 </html>
